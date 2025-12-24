@@ -3,7 +3,6 @@
 #include <string>
 #include "Class_base.h"
 #include "Windows.h"
-#include "Maps.h"
 
 //Звуковое оповещение
 void Matrix::sound_system(char type_sound) {
@@ -63,7 +62,7 @@ void Matrix::create_arena(int rows, int cols) {// Ограничение до 29x29, дальше и
 //Быстрое иницилизация и создания макета
 void Matrix::start_matrix_base() {// Заранне команда что бы не писать по 100 раз
     init_matrix();
-    create_arena(20, 20);
+    create_arena(19, 19);
 }
 //Иницилизация игрока и управления
 void Matrix::init_base_control() {
@@ -97,14 +96,25 @@ void Matrix::update_visual_model() { // Обновление положение игрока
     old_y_player = y_player;
 }
 //Загрузка карты
-void Matrix::load_map(std::string name_map) { //Не могу понять почему он не грузит карту
-    if (name_map == "map0") {
-        for (int i = x_centry - (20 / 2), copy_i = 0; copy_i <= 20; i++, copy_i++) {
-            for (int j = y_centry - (40 / 2), copy_j = 0; copy_j <= 40; i++, copy_j++) {
-                Matrix[i][j] = map0[copy_i][copy_j];
+void Matrix::load_map_from_file(int load_limiter) { //Не могу понять почему он не грузит карту
+    std::ifstream maps("Maps.txt");
+    std::string map_line;
+    int i = x_centry - (20 / 2), copy_i = 0;
+    int count_load = 0;
+    while (std::getline(maps, map_line)) {
+        if (map_line != "stop-map-load" && count_load != load_limiter) {
+            for (; copy_i < 20; i++, copy_i++) {
+
+                for (int j = y_centry - (40 / 2), i_map_line = 0,copy_j = 0; copy_j < 40 && i_map_line != map_line.size(); j++, i_map_line++) {
+                    Matrix[i][j] = map_line[i];
+                }
+                break;
             }
+            count_load++;
+       }
+        else {
+            break;
         }
-        status_load_map = "map0";
     }
 }
 //Команда для визуальной прогрузки игрока
@@ -129,7 +139,7 @@ void Matrix::load(std::string name_save) {
             y_player = std::stoi(line);
         }
         else if (i == 2) {
-            load_map(line);
+            //load_map(line);
         }
         else {
             sound_system('E');

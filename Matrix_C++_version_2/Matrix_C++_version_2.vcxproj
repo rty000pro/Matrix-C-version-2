@@ -128,7 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Class_base.h" />
-    <ClInclude Include="Maps.h" />
+    <Text Include="Maps.txt" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Инструкция.txt" />

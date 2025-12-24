@@ -30,7 +30,7 @@ public:
     void control();
     void update_visual_model();
     //Загрузка карты
-    void load_map(std::string name_map);
+    void load_map_from_file(int load_limiter);
     //Команда для визуальной прогрузки игрока
     void CPM_control();
     //Сохранение и загрузка

@@ -23,16 +23,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Maps.h">
-      <Filter>Исходные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="Class_base.h">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Инструкция.txt">
       <Filter>Исходные файлы</Filter>
+    </Text>
+    <Text Include="Maps.txt">
+      <Filter>Файлы заголовков</Filter>
     </Text>
   </ItemGroup>
 </Project>
