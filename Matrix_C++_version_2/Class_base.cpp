@@ -1,9 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <chrono>
+#include <thread>
 #include "Class_base.h"
 #include "Windows.h"
-
+#include <conio.h>
 //Звуковое оповещение
 void Matrix::sound_system(char type_sound) {
     if (type_sound == 'I') { //init
@@ -19,6 +21,12 @@ void Matrix::sound_system(char type_sound) {
 }
 // Иницилизация и вывод матрици
 void Matrix::init_matrix() {//Иницилизируем
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hConsole, &cursorInfo);
+    cursorInfo.bVisible = false;
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
+
     sound_system('I');
     for (int i = 0; i != 30; i++) {
         for (int j = 0; j != 120; j++) {
@@ -27,6 +35,10 @@ void Matrix::init_matrix() {//Иницилизируем
     }
 }
 void Matrix::print_matrix() {// Выводим матрицу
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD coord = { 0, 0 };
+    SetConsoleCursorPosition(hConsole, coord);
+
     for (int i = 0; i != 30; i++) {
         for (int j = 0; j != 120; j++) {
             std::cout << Matrix[i][j];
@@ -72,21 +84,48 @@ void Matrix::init_base_control() {
     old_x_player = x_player;
     old_y_player = y_player;
     model_player = '*';// Как выглядит игрок
+    num_model_player = 0; // Номер модели для функции 'change_icon()'
     Matrix[x_player][y_player] = model_player;
 }
 
-void Matrix::control() { //Управление
-    if (GetAsyncKeyState(VK_UP)) {
-        x_player -= 1;
+void Matrix::control() {
+    int ch = _getch();
+    if (ch == 0 || ch == 224) {
+        ch = _getch();
     }
-    if (GetAsyncKeyState(VK_DOWN)) {
-        x_player += 1;
-    }
-    if (GetAsyncKeyState(VK_LEFT)) {
-        y_player += 1;
-    }
-    if (GetAsyncKeyState(VK_RIGHT)) {
-        y_player -= 1;
+    switch (ch) {
+    case 'w': case 'W':
+        if (Matrix[x_player - 1][y_player] == '#') {
+            break;
+        }
+        else {
+            x_player -= 1;
+            break;
+        }
+    case 's': case 'S':
+        if (Matrix[x_player + 1][y_player] == '#') {
+            break;
+        }
+        else {
+            x_player += 1;
+            break;
+        }
+    case 'a': case 'A':
+        if (Matrix[x_player][y_player - 1] == '#') {
+            break;
+        }
+        else {
+            y_player -= 1;
+            break;
+        }
+    case 'd': case 'D':
+        if (Matrix[x_player][y_player + 1] == '#') {
+            break;
+        }
+        else {
+            y_player += 1;
+            break;
+        }
     }
 }
 void Matrix::update_visual_model() { // Обновление положение игрока
@@ -95,26 +134,58 @@ void Matrix::update_visual_model() { // Обновление положение игрока
     old_x_player = x_player;
     old_y_player = y_player;
 }
-//Загрузка карты
-void Matrix::load_map_from_file(int load_limiter) { //Не могу понять почему он не грузит карту
-    std::ifstream maps("Maps.txt");
-    std::string map_line;
-    int i = x_centry - (20 / 2), copy_i = 0;
-    int count_load = 0;
-    while (std::getline(maps, map_line)) {
-        if (map_line != "stop-map-load" && count_load != load_limiter) {
-            for (; copy_i < 20; i++, copy_i++) {
-
-                for (int j = y_centry - (40 / 2), i_map_line = 0,copy_j = 0; copy_j < 40 && i_map_line != map_line.size(); j++, i_map_line++) {
-                    Matrix[i][j] = map_line[i];
-                }
-                break;
+void Matrix::interaction() { //Взаимодействие, временно отрубил, пока-что не могу понять почему игрок не двигается (26.12.25)
+    if (GetAsyncKeyState('E') & 0x8000) {
+        for (int i = y_player - 1; i != y_player + 1; i++) {
+            if (Matrix[x_player - 1][i] == '1') {
+                change_icon();
             }
-            count_load++;
-       }
-        else {
+        }
+        for (int i = y_player - 1; i != y_player + 1; i++) {
+            if (Matrix[x_player + 1][i] == '1') {
+                change_icon();
+            }
+        }
+        /* Это штука не стабильна
+        if (Matrix[x_player + 1][y_centry + 1] == '1') {
+            change_icon();
+        }
+        */
+        for (int i = x_player - 1; i !=  x_player + 1; i++) {
+            if (Matrix[i][y_player - 1] == '1') {
+                change_icon();
+            }
+        }
+        for (int i = x_player - 1; i != x_player + 1; i++) {
+            if (Matrix[i][y_player + 1] == '1') {
+                change_icon();
+            }
+        }
+    }
+}
+//Загрузка карты
+void Matrix::load_map_from_file(int load_limiter) { //Наконец-то я это починил(26.12.25)
+    std::ifstream maps("Maps.txt");
+    if (!maps.is_open()) {
+        sound_system('E');
+        std::cout << "Error! file 'Maps.txt' is not open. Pleas check file for damage or whether it is open!" << std::endl;
+    }
+    std::string map_line;
+    int stop = 0;
+    int i = x_centry - (20 / 2);
+    while (std::getline(maps, map_line)) {
+        if (map_line == "stop-map-load" && stop == load_limiter) {
             break;
         }
+        if (map_line == "stop-map-load") {
+            stop++;
+            i = x_centry - (20 / 2);
+            continue;
+        }
+        for (int j = y_centry - (40 / 2), m = 0; m != map_line.size(); j++, m++) {
+            Matrix[i][j] = map_line[m];
+        }
+        i++;
     }
 }
 //Команда для визуальной прогрузки игрока
@@ -148,3 +219,13 @@ void Matrix::load(std::string name_save) {
         i++;
     }
 }
+//Игровые команды(Вызов интерфейса, функция взаимодействующего предмета)
+void Matrix::change_icon() {
+    char list_icon[] = { '*','P','@','•' };
+    num_model_player++;
+    model_player = list_icon[num_model_player];
+}
+/* Временно отложенно
+void music_test() {
+
+}*/

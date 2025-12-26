@@ -8,6 +8,7 @@ private:
     int old_x_player;
     int old_y_player;
     char model_player;
+    int num_model_player;
     //Центр карты
     int x_centry = 30 / 2;
     int y_centry = 120 / 2;
@@ -15,6 +16,8 @@ private:
     char Matrix[30][120];
     //Загруженная карта
     std::string status_load_map;
+    //Переменные для маленьких функций
+
 public:
     //Звуковые оповещение
     void sound_system(char type_sound);
@@ -29,6 +32,7 @@ public:
     void init_base_control();
     void control();
     void update_visual_model();
+    void interaction();
     //Загрузка карты
     void load_map_from_file(int load_limiter);
     //Команда для визуальной прогрузки игрока
@@ -36,4 +40,7 @@ public:
     //Сохранение и загрузка
     void save(std::string name_save);
     void load(std::string name_save);
+    //Игровые команды(Вызов интерфейса, функция взаимодействующего предмета)
+    void change_icon();
+    void music_test();
 };
