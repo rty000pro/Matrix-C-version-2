@@ -9,7 +9,7 @@ int main() {
     m1.print_matrix();
     while (true) {
         m1.CPM_control();
-        //m1.interaction();
+        m1.interaction();
         m1.print_matrix();
     }
 }

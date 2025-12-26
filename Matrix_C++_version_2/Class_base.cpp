@@ -7,7 +7,7 @@
 #include "Windows.h"
 #include <conio.h>
 //Звуковое оповещение
-void Matrix::sound_system(char type_sound) {
+void Matrix::sound_system(char type_sound) { // Просто звуковой оповещатор, спомощью 3 букв выбирается тип звука
     if (type_sound == 'I') { //init
         Beep(500, 300);
     }
@@ -21,13 +21,8 @@ void Matrix::sound_system(char type_sound) {
 }
 // Иницилизация и вывод матрици
 void Matrix::init_matrix() {//Иницилизируем
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO cursorInfo;
-    GetConsoleCursorInfo(hConsole, &cursorInfo);
-    cursorInfo.bVisible = false;
-    SetConsoleCursorInfo(hConsole, &cursorInfo);
-
     sound_system('I');
+
     for (int i = 0; i != 30; i++) {
         for (int j = 0; j != 120; j++) {
             Matrix[i][j] = ' ';
@@ -47,7 +42,7 @@ void Matrix::print_matrix() {// Выводим матрицу
     }
 }
 //Создания макета карты для матрици
-void Matrix::create_arena(int rows, int cols) {// Ограничение до 29x29, дальше идут артефакты (10.12.25)
+void Matrix::create_arena(int rows, int cols) {// Создаёт макет карты, или просто арену. Ограничение до 29x29, дальше идут артефакты (10.12.25)
     if (rows > 29 && cols > 29) { // Специально поставил ограничение хотя его будет легко обойти.
         sound_system('E');
         std::cout << "Please change the create_arena() configuration." << std::endl;
@@ -77,7 +72,7 @@ void Matrix::start_matrix_base() {// Заранне команда что бы не писать по 100 раз
     create_arena(19, 19);
 }
 //Иницилизация игрока и управления
-void Matrix::init_base_control() {
+void Matrix::init_base_control() {// Заполняет всё перменные игрока нужной информацией
     sound_system('I');
     x_player = x_centry; //Координаты игрока
     y_player = y_centry;
@@ -88,14 +83,14 @@ void Matrix::init_base_control() {
     Matrix[x_player][y_player] = model_player;
 }
 
-void Matrix::control() {
+void Matrix::control() {// Управление игрока. Примечание: Управление не фоновое, это значит что функция будет ждать когда ты нажмёшь кнопку, дальше она не пустит!
     int ch = _getch();
     if (ch == 0 || ch == 224) {
         ch = _getch();
     }
     switch (ch) {
     case 'w': case 'W':
-        if (Matrix[x_player - 1][y_player] == '#') {
+        if (Matrix[x_player - 1][y_player] == '#' || Matrix[x_player - 1][y_player] == '-') {
             break;
         }
         else {
@@ -103,7 +98,7 @@ void Matrix::control() {
             break;
         }
     case 's': case 'S':
-        if (Matrix[x_player + 1][y_player] == '#') {
+        if (Matrix[x_player + 1][y_player] == '#' || Matrix[x_player + 1][y_player]  == '-') {
             break;
         }
         else {
@@ -111,7 +106,7 @@ void Matrix::control() {
             break;
         }
     case 'a': case 'A':
-        if (Matrix[x_player][y_player - 1] == '#') {
+        if (Matrix[x_player][y_player - 1] == '#' || Matrix[x_player][y_player - 1] == '-') {
             break;
         }
         else {
@@ -119,7 +114,7 @@ void Matrix::control() {
             break;
         }
     case 'd': case 'D':
-        if (Matrix[x_player][y_player + 1] == '#') {
+        if (Matrix[x_player][y_player + 1] == '#' || Matrix[x_player][y_player + 1] == '-') {
             break;
         }
         else {
@@ -134,7 +129,7 @@ void Matrix::update_visual_model() { // Обновление положение игрока
     old_x_player = x_player;
     old_y_player = y_player;
 }
-void Matrix::interaction() { //Взаимодействие, временно отрубил, пока-что не могу понять почему игрок не двигается (26.12.25)
+void Matrix::interaction() { //Взаимодействие с окружение, в радиусе 3 на 3 игрок может взаимодействовать с предметами или чем-то ещё (26.12.25), ах да она взаимодействует только с энтити 1
     if (GetAsyncKeyState('E') & 0x8000) {
         for (int i = y_player - 1; i != y_player + 1; i++) {
             if (Matrix[x_player - 1][i] == '1') {
@@ -164,11 +159,11 @@ void Matrix::interaction() { //Взаимодействие, временно отрубил, пока-что не мог
     }
 }
 //Загрузка карты
-void Matrix::load_map_from_file(int load_limiter) { //Наконец-то я это починил(26.12.25)
+void Matrix::load_map_from_file(int load_limiter) { // Загружает карту из файла Maps.txt так что вы можете сами сделать карту и загрузить, только знайте все неизвестные знаки игрок будет есть (26.12.25)
     std::ifstream maps("Maps.txt");
     if (!maps.is_open()) {
         sound_system('E');
-        std::cout << "Error! file 'Maps.txt' is not open. Pleas check file for damage or whether it is open!" << std::endl;
+        std::cout << "Error! file 'Maps.txt' is not open. Please check file for damage or whether it is open!" << std::endl;
     }
     std::string map_line;
     int stop = 0;
@@ -189,16 +184,16 @@ void Matrix::load_map_from_file(int load_limiter) { //Наконец-то я это починил(2
     }
 }
 //Команда для визуальной прогрузки игрока
-void Matrix::CPM_control() {
+void Matrix::CPM_control() {// Просто команда обьеденяет 2 команды для простоты работы
     control();
     update_visual_model();
 }
 //Сохранение и загрузка
-void Matrix::save(std::string name_save) {
+void Matrix::save(std::string name_save) {// Сохраняет данные, где игрок и на какой он карте
     std::ofstream save_file(name_save);
     save_file << x_player << std::endl << y_player << std::endl << status_load_map << std::endl;
 }
-void Matrix::load(std::string name_save) {
+void Matrix::load(std::string name_save) { // Выгружает карту
     std::ifstream load_file(name_save);
     std::string line;
     int i = 0;
@@ -220,12 +215,15 @@ void Matrix::load(std::string name_save) {
     }
 }
 //Игровые команды(Вызов интерфейса, функция взаимодействующего предмета)
-void Matrix::change_icon() {
-    char list_icon[] = { '*','P','@','•' };
+void Matrix::change_icon() { // Меняет иконку игрока
+    char list_icon[] = { '*','P','@','•','x'};
+    if (num_model_player >= 4) {
+        num_model_player = 0;
+    }
     num_model_player++;
     model_player = list_icon[num_model_player];
 }
-/* Временно отложенно
-void music_test() {
 
-}*/
+void music_test() {// Если я завтра не сделаю это, значит знайте(26.12.25). Здесь должна быть музыка из Portal - Steel Alive. Спросите почему? По приколу.
+    Beep(500, 500);
+}
