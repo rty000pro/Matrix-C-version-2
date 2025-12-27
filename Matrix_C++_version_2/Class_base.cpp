@@ -3,6 +3,8 @@
 #include <string>
 #include <chrono>
 #include <thread>
+#include <vector>
+#include <cmath>
 #include "Class_base.h"
 #include "Windows.h"
 #include <conio.h>
@@ -22,6 +24,11 @@ void Matrix::sound_system(char type_sound) { // Просто звуковой оповещатор, спом
 // Иницилизация и вывод матрици
 void Matrix::init_matrix() {//Иницилизируем
     sound_system('I');
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hConsole, &cursorInfo);
+    cursorInfo.bVisible = false;
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
 
     for (int i = 0; i != 30; i++) {
         for (int j = 0; j != 120; j++) {
@@ -135,10 +142,16 @@ void Matrix::interaction() { //Взаимодействие с окружение, в радиусе 3 на 3 игро
             if (Matrix[x_player - 1][i] == '1') {
                 change_icon();
             }
+            else if (Matrix[x_player - 1][i] == '2') {
+                music_test();
+            }
         }
         for (int i = y_player - 1; i != y_player + 1; i++) {
             if (Matrix[x_player + 1][i] == '1') {
                 change_icon();
+            }
+            else if (Matrix[x_player + 1][i] == '2') {
+                music_test();
             }
         }
         /* Это штука не стабильна
@@ -150,10 +163,16 @@ void Matrix::interaction() { //Взаимодействие с окружение, в радиусе 3 на 3 игро
             if (Matrix[i][y_player - 1] == '1') {
                 change_icon();
             }
+            else if (Matrix[i][y_player - 1] == '2') {
+                music_test();
+            }
         }
         for (int i = x_player - 1; i != x_player + 1; i++) {
             if (Matrix[i][y_player + 1] == '1') {
                 change_icon();
+            }
+            else if (Matrix[i][y_player + 1] == '2') {
+                music_test();
             }
         }
     }
@@ -223,7 +242,12 @@ void Matrix::change_icon() { // Меняет иконку игрока
     num_model_player++;
     model_player = list_icon[num_model_player];
 }
-
-void music_test() {// Если я завтра не сделаю это, значит знайте(26.12.25). Здесь должна быть музыка из Portal - Steel Alive. Спросите почему? По приколу.
-    Beep(500, 500);
+//Пытаемся заставить Beep играть музыку
+struct Note
+{
+    int hz;
+    int time;
+};
+void Matrix::music_test() {// Если я завтра не сделаю это, значит знайте(26.12.25). Здесь должна быть музыка из Portal - Still Alive. Спросите почему? По приколу.
+// Я не смог найти нормальные ноты под эту композицию
 }
